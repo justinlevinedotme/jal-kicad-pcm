@@ -9,7 +9,7 @@ on:
       - "assets/**"
       - "resources.zip"
   schedule:
-    - cron: "0 * * * *" # hourly
+    - cron: "0 8 * * *" # daily at 8
   workflow_run:
     workflows: ["Manage Sources"]
     types: [completed]
