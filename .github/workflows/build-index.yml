@@ -1,0 +1,76 @@
+name: Build PCM Index
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "repos.yaml"
+      - "scripts/**"
+      - "assets/**"
+      - "resources.zip"
+  schedule:
+    - cron: "0 * * * *" # hourly
+  workflow_run:
+    workflows: ["Manage Sources"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # only run if Manage Sources didn't fail
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Build resources.zip (per-package folders -> one repository zip)
+        run: python scripts/update_resources.py
+
+      - name: Build index
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python scripts/build_index.py
+
+      - name: Update README from index (optional)
+        run: |
+          if [ -f scripts/update_readme.py ]; then
+            python scripts/update_readme.py
+          else
+            echo "update_readme.py not present; skipping README refresh."
+          fi
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add packages.json repository.json resources.zip README.md || true
+
+            case "${{ github.event_name }}" in
+              workflow_dispatch)
+                MSG="index: manual rebuild (run #${{ github.run_number }})" ;;
+              workflow_run)
+                MSG="index: rebuild after Manage Sources (run #${{ github.run_number }})" ;;
+              push)
+                MSG="index: rebuild due to repo changes (run #${{ github.run_number }})" ;;
+              *)
+                MSG="index: auto-update (run #${{ github.run_number }})" ;;
+            esac
+
+            git commit -m "$MSG"
+            git push
+          else
+            echo "No changes."
+          fi

@@ -1,0 +1,90 @@
+name: Manage Sources
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose: add_release, add_mirror, remove"
+        required: true
+        type: choice
+        options:
+          - add_release
+          - add_mirror
+          - remove
+      owner_repo:
+        description: "owner/repo (for add_release)"
+        required: false
+      asset_glob:
+        description: "Asset glob (for add_release, e.g. *.zip)"
+        required: false
+        default: "*.zip"
+      only_latest:
+        description: "Only latest? (true/false) for add_release"
+        required: false
+        default: "true"
+      mirror_url:
+        description: "packages.json URL (for add_mirror)"
+        required: false
+      remove_id:
+        description: "ID to remove (for remove)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  manage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: pip install pyyaml
+
+      - name: Apply change
+        run: |
+          if [ "${{ github.event.inputs.action }}" = "add_release" ]; then
+            python scripts/manage_repos.py add_release \
+              "${{ github.event.inputs.owner_repo }}" \
+              "${{ github.event.inputs.asset_glob }}" \
+              "${{ github.event.inputs.only_latest }}"
+          elif [ "${{ github.event.inputs.action }}" = "add_mirror" ]; then
+            python scripts/manage_repos.py add_mirror \
+              "${{ github.event.inputs.mirror_url }}"
+          elif [ "${{ github.event.inputs.action }}" = "remove" ]; then
+            python scripts/manage_repos.py remove \
+              "${{ github.event.inputs.remove_id }}"
+          else
+            echo "Unknown action"
+            exit 1
+          fi
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add repos.yaml
+
+            case "${{ github.event.inputs.action }}" in
+              add_release)
+                MSG="sources: added release source (run #${{ github.run_number }})" ;;
+              add_mirror)
+                MSG="sources: added mirror source (run #${{ github.run_number }})" ;;
+              remove)
+                MSG="sources: removed source (run #${{ github.run_number }})" ;;
+              *)
+                MSG="sources: updated repos.yaml (run #${{ github.run_number }})" ;;
+            esac
+
+            git commit -m "$MSG"
+            git push
+          else
+            echo "No changes."
+          fi
