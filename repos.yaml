@@ -1,0 +1,17 @@
+maintainer:
+  name: Justin Levine
+  contact:
+    github: '@justinlevinedotme'
+    homepage: https://www.justinlevine.me
+name: JAL KiCad PCM Repository
+sources:
+- id: marbastlib
+  mode: release_scan
+  repo: ebastler/marbastlib
+  asset_glob: '*'
+  only_latest: true
+- id: kicad-jlcpcb-tools
+  mode: release_scan
+  repo: Bouni/kicad-jlcpcb-tools
+  asset_glob: '*.zip'
+  only_latest: false

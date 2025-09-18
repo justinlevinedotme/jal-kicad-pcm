@@ -1,0 +1,23 @@
+{
+  "$schema": "https://gitlab.com/kicad/code/kicad/-/raw/master/kicad/pcm/schemas/pcm.v1.schema.json#/definitions/Repository",
+  "name": "JAL KiCad PCM Repository",
+  "maintainer": {
+    "name": "Justin Levine",
+    "contact": {
+      "github": "@justinlevinedotme",
+      "homepage": "https://www.justinlevine.me"
+    }
+  },
+  "packages": {
+    "url": "https://raw.githubusercontent.com/justinlevinedotme/jal-kicad-pcm/main/packages.json",
+    "sha256": "be82fcc33f58a559af798c29864e350098516f13228720a3f62c1f7f9016ef13",
+    "update_time_utc": "2025-09-17 23:55:02",
+    "update_timestamp": 1758153302
+  },
+  "resources": {
+    "url": "https://raw.githubusercontent.com/justinlevinedotme/jal-kicad-pcm/main/resources.zip",
+    "sha256": "e9a7def10e4b007ed2c1a1d09d758718ead3466a6a34de5467ed29813548fcd0",
+    "update_time_utc": "2025-09-17 23:55:02",
+    "update_timestamp": 1758153302
+  }
+}
