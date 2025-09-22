@@ -29,11 +29,13 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets"
 OUT_ZIP = ROOT / "resources.zip"
 
+
 def add_dir_to_zip(z: zipfile.ZipFile, base_dir: Path, arc_prefix: str):
     for path in base_dir.rglob("*"):
         if path.is_file():
             arcname = f"{arc_prefix}/{path.relative_to(base_dir).as_posix()}"
             z.write(path, arcname)
+
 
 def main():
     # If no assets/ directory, remove resources.zip if present and exit cleanly
@@ -62,7 +64,10 @@ def main():
             add_dir_to_zip(z, pkg_dir, pkg_dir.name)
 
     size = OUT_ZIP.stat().st_size
-    print(f"Built {OUT_ZIP.name} ({size} bytes) from {len(pkg_dirs)} package folder(s).")
+    print(
+        f"Built {OUT_ZIP.name} ({size} bytes) from {len(pkg_dirs)} package folder(s)."
+    )
+
 
 if __name__ == "__main__":
     try:

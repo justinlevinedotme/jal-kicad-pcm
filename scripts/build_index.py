@@ -6,10 +6,13 @@ import yaml
 
 GITHUB_API = "https://api.github.com"
 
+
 def log(msg: str) -> None:
     print(msg, flush=True)
 
+
 # ------------------------ HTTP / GH API ------------------------
+
 
 def gh_api(path, token):
     req = urllib.request.Request(f"{GITHUB_API}{path}")
@@ -19,32 +22,44 @@ def gh_api(path, token):
     with urllib.request.urlopen(req) as r:
         return json.load(r)
 
+
 def http_get(url):
     with urllib.request.urlopen(url) as r:
         return r.read()
 
+
 # ------------------------ helpers ------------------------
 
+
 def sha256_bytes(b: bytes) -> str:
-    h = hashlib.sha256(); h.update(b); return h.hexdigest()
+    h = hashlib.sha256()
+    h.update(b)
+    return h.hexdigest()
+
 
 def asset_download_url(owner_repo, tag, asset_name):
     owner, repo = owner_repo.split("/", 1)
     return f"https://github.com/{owner}/{repo}/releases/download/{tag}/{asset_name}"
 
+
 def load_yaml(path):
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+
 def now_utc_str():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
 
+
 # --- tolerant JSON loader (no deps) ---
-_comment_re = re.compile(r"""(?mx)
+_comment_re = re.compile(
+    r"""(?mx)
     (//[^\n]*$)            # // line comments
   | (/\*.*?\*/)            # /* block comments */
-""")
+"""
+)
 _trailing_comma_re = re.compile(r",\s*([}\]])")  # , }
+
 
 def json_loads_tolerant(s: str):
     try:
@@ -55,11 +70,13 @@ def json_loads_tolerant(s: str):
         s2 = _trailing_comma_re.sub(r"\1", s2)
         return json.loads(s2)
 
+
 def _select_manifest_name(names):
     """Return 'manifest.json' or 'metadata.json' if present (root or 1st-level)."""
     # exact root
     for n in ("manifest.json", "metadata.json"):
-        if n in names: return n
+        if n in names:
+            return n
     # one top-level folder (GitHub zips often do this)
     parts = [p.split("/", 1) for p in names if "/" in p]
     toplevels = set(p[0] for p in parts)
@@ -67,8 +84,10 @@ def _select_manifest_name(names):
         root = next(iter(toplevels))
         for n in ("manifest.json", "metadata.json"):
             cand = f"{root}/{n}"
-            if cand in names: return cand
+            if cand in names:
+                return cand
     return None
+
 
 def read_manifest_from_archive(blob: bytes):
     """
@@ -108,17 +127,21 @@ def read_manifest_from_archive(blob: bytes):
 
     return None, None
 
+
 # ------------------------ builders ------------------------
+
 
 def build_from_release_scan(src, token):
     owner_repo = src["repo"]
     glob_pat = src.get("asset_glob", "*.zip")
     only_latest = src.get("only_latest", False)
     # convert simple glob to regex (case-sensitive to match GitHub names exactly)
-    rx = re.compile("^" + re.escape(glob_pat).replace(r"\*", ".*").replace(r"\?", ".") + "$")
+    rx = re.compile(
+        "^" + re.escape(glob_pat).replace(r"\*", ".*").replace(r"\?", ".") + "$"
+    )
 
     releases = gh_api(f"/repos/{owner_repo}/releases", token)
-    releases.sort(key=lambda r: r.get("created_at",""), reverse=True)
+    releases.sort(key=lambda r: r.get("created_at", ""), reverse=True)
 
     packages = {}
     log(f"Scanning repo {owner_repo} (only_latest={only_latest}, glob='{glob_pat}')")
@@ -131,7 +154,7 @@ def build_from_release_scan(src, token):
         matched = 0
         for a in assets:
             name = a.get("name")
-            url  = a.get("browser_download_url")
+            url = a.get("browser_download_url")
             if not name or not url:
                 log("    - skip: asset missing name/url")
                 continue
@@ -150,21 +173,38 @@ def build_from_release_scan(src, token):
                 continue
 
             pkg_id = manifest.get("identifier") or src["id"]
-            pkg = packages.setdefault(pkg_id, {
-                "$schema": "https://go.kicad.org/pcm/schemas/v1",
-                "identifier": pkg_id,
-                "name": manifest.get("name", pkg_id),
-                "type": manifest.get("type", "library"),
-                "description": manifest.get("description", f"{pkg_id} package"),
-                # optional, if you have a longer one in your manifest:
-                **({"description_full": manifest.get("description_full")} if manifest.get("description_full") else {}),
-                "license": manifest.get("license", ""),
-                # optional author/maintainer passthroughs if present
-                **({"author": manifest["author"]} if isinstance(manifest.get("author"), dict) else {}),
-                **({"maintainer": manifest["maintainer"]} if isinstance(manifest.get("maintainer"), dict) else {}),
-                "resources": manifest.get("resources", {}),  # e.g. {"homepage": "..."}
-                "versions": []
-            })
+            pkg = packages.setdefault(
+                pkg_id,
+                {
+                    "$schema": "https://go.kicad.org/pcm/schemas/v1",
+                    "identifier": pkg_id,
+                    "name": manifest.get("name", pkg_id),
+                    "type": manifest.get("type", "library"),
+                    "description": manifest.get("description", f"{pkg_id} package"),
+                    # optional, if you have a longer one in your manifest:
+                    **(
+                        {"description_full": manifest.get("description_full")}
+                        if manifest.get("description_full")
+                        else {}
+                    ),
+                    "license": manifest.get("license", ""),
+                    # optional author/maintainer passthroughs if present
+                    **(
+                        {"author": manifest["author"]}
+                        if isinstance(manifest.get("author"), dict)
+                        else {}
+                    ),
+                    **(
+                        {"maintainer": manifest["maintainer"]}
+                        if isinstance(manifest.get("maintainer"), dict)
+                        else {}
+                    ),
+                    "resources": manifest.get(
+                        "resources", {}
+                    ),  # e.g. {"homepage": "..."}
+                    "versions": [],
+                },
+            )
 
             # ---- auto-wire local assets into resources (assets/<identifier>/...) ----
             repo_root = Path(__file__).resolve().parents[1]
@@ -173,16 +213,24 @@ def build_from_release_scan(src, token):
                 pkg.setdefault("resources", {})
                 icon_rel = f"{pkg_id}/icon.png"
                 shot_rel = f"{pkg_id}/screenshot.png"
-                if (assets_dir / "icon.png").exists() and "icon" not in pkg["resources"]:
+                if (assets_dir / "icon.png").exists() and "icon" not in pkg[
+                    "resources"
+                ]:
                     pkg["resources"]["icon"] = icon_rel
-                if (assets_dir / "screenshot.png").exists() and "screenshot" not in pkg["resources"]:
+                if (assets_dir / "screenshot.png").exists() and "screenshot" not in pkg[
+                    "resources"
+                ]:
                     pkg["resources"]["screenshot"] = shot_rel
             # ------------------------------------------------------------------------
 
-            version_str = (manifest.get("version") or (tag.lstrip("v") if tag else "0.0.0")).strip()
+            version_str = (
+                manifest.get("version") or (tag.lstrip("v") if tag else "0.0.0")
+            ).strip()
             # de-dupe versions by version string
             if any(v.get("version") == version_str for v in pkg["versions"]):
-                log(f"      • note: version {version_str} already present; skipping duplicate asset")
+                log(
+                    f"      • note: version {version_str} already present; skipping duplicate asset"
+                )
             else:
                 version_entry = {
                     "version": version_str,
@@ -209,9 +257,10 @@ def build_from_release_scan(src, token):
 
     # sort versions newest-first (lexicographic fallback)
     for pkg in packages.values():
-        pkg["versions"].sort(key=lambda v: v.get("version",""), reverse=True)
+        pkg["versions"].sort(key=lambda v: v.get("version", ""), reverse=True)
 
     return list(packages.values())
+
 
 def build_from_mirror(src):
     data = http_get(src["packages_url"]).decode("utf-8")
@@ -220,7 +269,9 @@ def build_from_mirror(src):
         pkgs = pkgs.get("packages") or pkgs.get("data") or []
     return pkgs
 
+
 # ------------------------ main ------------------------
+
 
 def main():
     repo_root = Path(__file__).resolve().parents[1]
@@ -250,8 +301,12 @@ def main():
     # compute sha on the exact bytes we just wrote
     pk_bytes = packages_path.read_bytes()
     pk_sha = sha256_bytes(pk_bytes)
-    repo_fullname = os.environ.get('GITHUB_REPOSITORY', 'justinlevinedotme/jal-kicad-pcm')
-    packages_url = f"https://raw.githubusercontent.com/{repo_fullname}/main/packages.json"
+    repo_fullname = os.environ.get(
+        "GITHUB_REPOSITORY", "justinlevinedotme/jal-kicad-pcm"
+    )
+    packages_url = (
+        f"https://raw.githubusercontent.com/{repo_fullname}/main/packages.json"
+    )
 
     repo_json = {
         "$schema": "https://gitlab.com/kicad/code/kicad/-/raw/master/kicad/pcm/schemas/pcm.v1.schema.json#/definitions/Repository",
@@ -261,8 +316,8 @@ def main():
             "url": packages_url,
             "sha256": pk_sha,
             "update_time_utc": now_utc_str(),
-            "update_timestamp": int(time.time())
-        }
+            "update_timestamp": int(time.time()),
+        },
     }
 
     # optional resources.zip
@@ -273,13 +328,14 @@ def main():
             "url": f"https://raw.githubusercontent.com/{repo_fullname}/main/resources.zip",
             "sha256": sha256_bytes(res_bytes),
             "update_time_utc": now_utc_str(),
-            "update_timestamp": int(time.time())
+            "update_timestamp": int(time.time()),
         }
 
     with open(repo_root / "repository.json", "w", encoding="utf-8") as f:
         json.dump(repo_json, f, indent=2, ensure_ascii=False)
 
     log(f"Wrote {len(all_packages)} package entries.")
+
 
 if __name__ == "__main__":
     main()

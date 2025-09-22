@@ -2,8 +2,14 @@
 import sys, yaml, re
 from pathlib import Path
 
-def load_cfg(p): return yaml.safe_load(p.read_text(encoding="utf-8"))
-def dump_cfg(p, d): p.write_text(yaml.safe_dump(d, sort_keys=False), encoding="utf-8")
+
+def load_cfg(p):
+    return yaml.safe_load(p.read_text(encoding="utf-8"))
+
+
+def dump_cfg(p, d):
+    p.write_text(yaml.safe_dump(d, sort_keys=False), encoding="utf-8")
+
 
 def main():
     if len(sys.argv) < 2:
@@ -19,7 +25,11 @@ def main():
         if len(sys.argv) < 5:
             print("add_release <owner/repo> <asset_glob> <only_latest:true|false>")
             sys.exit(1)
-        owner_repo, glob, only_latest = sys.argv[2], sys.argv[3], sys.argv[4].lower() == "true"
+        owner_repo, glob, only_latest = (
+            sys.argv[2],
+            sys.argv[3],
+            sys.argv[4].lower() == "true",
+        )
         new = {
             "id": re.sub(r"[^a-z0-9-_]+", "-", owner_repo.split("/")[-1].lower()),
             "mode": "release_scan",
@@ -37,7 +47,7 @@ def main():
         new = {
             "id": re.sub(r"[^a-z0-9-_]+", "-", Path(url).stem.lower()),
             "mode": "mirror_packages_json",
-            "packages_url": url
+            "packages_url": url,
         }
         sources.append(new)
 
@@ -54,6 +64,7 @@ def main():
 
     dump_cfg(cfg_path, cfg)
     print("repos.yaml updated.")
+
 
 if __name__ == "__main__":
     main()

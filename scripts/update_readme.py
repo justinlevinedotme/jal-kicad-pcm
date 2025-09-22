@@ -7,7 +7,8 @@ PKG_PATH = ROOT / "packages.json"
 README = ROOT / "README.md"
 
 START = "<!-- AUTO-INDEX:START -->"
-END   = "<!-- AUTO-INDEX:END -->"
+END = "<!-- AUTO-INDEX:END -->"
+
 
 def load_packages():
     data = json.loads(PKG_PATH.read_text(encoding="utf-8"))
@@ -15,16 +16,31 @@ def load_packages():
         return data["packages"]
     return data
 
+
 def pkg_display_name(pkg):
     return pkg.get("name", pkg.get("identifier", "(unknown)"))
+
 
 def pkg_home_link(pkg):
     home = (pkg.get("resources") or {}).get("homepage")
     name = pkg_display_name(pkg)
     return f"[{name}]({home})" if home else name
 
+
 # ---------- Maintainer helpers ----------
-_URL_KEYS = ("homepage", "website", "web", "url", "github", "gitlab", "source", "repo", "repository", "twitter")
+_URL_KEYS = (
+    "homepage",
+    "website",
+    "web",
+    "url",
+    "github",
+    "gitlab",
+    "source",
+    "repo",
+    "repository",
+    "twitter",
+)
+
 
 def first_url_like(d):
     if not isinstance(d, dict):
@@ -34,6 +50,7 @@ def first_url_like(d):
         if isinstance(v, str) and v.startswith(("http://", "https://")):
             return v
     return None
+
 
 def get_maintainer(pkg):
     m = pkg.get("maintainer") or {}
@@ -49,6 +66,7 @@ def get_maintainer(pkg):
         return f"[{aname}]({aurl})" if aurl else aname
     return "-"
 
+
 # ---------- License helpers ----------
 def normalize_license_field(value):
     if not value:
@@ -61,9 +79,14 @@ def normalize_license_field(value):
             if isinstance(v, str) and v.strip():
                 return v.strip()
     if isinstance(value, (list, tuple)):
-        parts = [normalize_license_field(item) for item in value if normalize_license_field(item)]
+        parts = [
+            normalize_license_field(item)
+            for item in value
+            if normalize_license_field(item)
+        ]
         return ", ".join(parts) if parts else None
     return None
+
 
 def get_license(pkg):
     for candidate in (pkg.get("license"), pkg.get("licenses")):
@@ -85,12 +108,14 @@ def get_license(pkg):
             return s
     return "not specified"
 
+
 # ---------- Table ----------
 def pkg_row(pkg):
-    disp  = pkg_home_link(pkg)
+    disp = pkg_home_link(pkg)
     maint = get_maintainer(pkg)
-    lic   = get_license(pkg)
+    lic = get_license(pkg)
     return f"| {disp} | {maint} | {lic} |"
+
 
 def build_table(pkgs):
     if not pkgs:
@@ -98,6 +123,7 @@ def build_table(pkgs):
     header = "| 📦 Package | 👤 Maintainer | 🧾 License |\n|---|---|---|"
     rows = [pkg_row(p) for p in sorted(pkgs, key=lambda x: pkg_display_name(x).lower())]
     return "\n".join([header, *rows])
+
 
 def render_block(pkgs):
     ts = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime())
@@ -109,8 +135,7 @@ def render_block(pkgs):
         "If a license isn’t specified here, check the upstream repository."
         "While this repository itself is MIT-licensed, the packages included retain their original licenses."
     )
-    return (
-f"""{START}
+    return f"""{START}
 
 {preface}
 
@@ -118,7 +143,7 @@ f"""{START}
 
 _Last updated: **{ts}** • Packages: **{count}**_
 {END}"""
-    )
+
 
 # ---------- README plumbing ----------
 def ensure_markers(text: str) -> str:
@@ -126,9 +151,11 @@ def ensure_markers(text: str) -> str:
         return text
     return text.rstrip() + "\n\n## Packages\n\n" + START + "\n" + END + "\n"
 
+
 def replace_block(text: str, new_block: str) -> str:
     pattern = re.compile(re.escape(START) + r".*?" + re.escape(END), flags=re.DOTALL)
     return pattern.sub(new_block, text)
+
 
 def main():
     pkgs = load_packages()
@@ -137,13 +164,20 @@ def main():
         content = README.read_text(encoding="utf-8")
         content = ensure_markers(content)
     else:
-        content = "# JAL KiCad PCM Repository\n\nThis repository hosts a custom KiCad PCM index.\n\n## Packages\n\n" + START + "\n" + END + "\n"
+        content = (
+            "# JAL KiCad PCM Repository\n\nThis repository hosts a custom KiCad PCM index.\n\n## Packages\n\n"
+            + START
+            + "\n"
+            + END
+            + "\n"
+        )
     updated = replace_block(content, block)
     if updated != content:
         README.write_text(updated, encoding="utf-8")
         print("README.md updated.")
     else:
         print("README.md is already up to date.")
+
 
 if __name__ == "__main__":
     main()
