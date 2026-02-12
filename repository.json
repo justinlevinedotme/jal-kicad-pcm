@@ -11,13 +11,13 @@
   "packages": {
     "url": "https://raw.githubusercontent.com/justinlevinedotme/jal-kicad-pcm/main/packages.json",
     "sha256": "3a64d4c58cc6dfcc375760fd48022c58d2eb58de39cbdcf91f851180a1e89a76",
-    "update_time_utc": "2026-02-11 08:15:40",
-    "update_timestamp": 1770797740
+    "update_time_utc": "2026-02-12 08:15:05",
+    "update_timestamp": 1770884105
   },
   "resources": {
     "url": "https://raw.githubusercontent.com/justinlevinedotme/jal-kicad-pcm/main/resources.zip",
-    "sha256": "c4d33c9952cfa0f8f9078cf22c0780fcb6a2d9a14a89ba55e484aec8e5bf0692",
-    "update_time_utc": "2026-02-11 08:15:40",
-    "update_timestamp": 1770797740
+    "sha256": "53bbdabf1861c24dac333b85b32c1f990d1738e01b2e179da20b3ca37993da10",
+    "update_time_utc": "2026-02-12 08:15:05",
+    "update_timestamp": 1770884105
   }
 }
