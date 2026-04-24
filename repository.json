@@ -10,14 +10,14 @@
   },
   "packages": {
     "url": "https://raw.githubusercontent.com/jal-co/jal-kicad-pcm/main/packages.json",
-    "sha256": "3185a57778107906a387d5021bcd77bdfd9798d6ee960623b6d94612975e4c57",
-    "update_time_utc": "2026-04-23 08:38:01",
-    "update_timestamp": 1776933481
+    "sha256": "bfc5ce542f6e568b27e002347fa6521ff886c864ae442a912c7b9d56b3a61bdf",
+    "update_time_utc": "2026-04-24 08:42:53",
+    "update_timestamp": 1777020173
   },
   "resources": {
     "url": "https://raw.githubusercontent.com/jal-co/jal-kicad-pcm/main/resources.zip",
-    "sha256": "e65d00d732b4417cfcd243d01632f6adac665970b1727d98a447fe7afb812758",
-    "update_time_utc": "2026-04-23 08:38:01",
-    "update_timestamp": 1776933481
+    "sha256": "0847ef18c44666f86323d138b5687ab1133ee972a0ffa16ef3fd7df7d069ed6e",
+    "update_time_utc": "2026-04-24 08:42:53",
+    "update_timestamp": 1777020173
   }
 }

@@ -42,7 +42,7 @@
       "type": "plugin",
       "description": "A JLCPCB integration addon for KiCAD",
       "description_full": "This plugin allows you to search the JLCPCB parts database, assign LCSC article numbers to your parts, generate production files for JLCPCB and much more.",
-      "license": "WTFPL",
+      "license": "MIT",
       "author": {
         "name": "Bouni",
         "contact": {
@@ -59,6 +59,14 @@
         "homepage": "https://github.com/bouni/kicad-jlcpcb-tools"
       },
       "versions": [
+        {
+          "version": "2026.04.03",
+          "download_url": "https://github.com/Bouni/kicad-jlcpcb-tools/releases/download/2026.04.03/KiCAD-PCM-2026.04.03.zip",
+          "download_sha256": "e822e6ecc8302d0f84f5dc8129b4104f64045aaa2949b6653b384c69e584d284",
+          "download_size": 259632,
+          "status": "testing",
+          "kicad_version": "8.0"
+        },
         {
           "version": "2026.04.02",
           "download_url": "https://github.com/Bouni/kicad-jlcpcb-tools/releases/download/2026.04.02/KiCAD-PCM-2026.04.02.zip",
@@ -288,14 +296,6 @@
           "download_url": "https://github.com/Bouni/kicad-jlcpcb-tools/releases/download/2023.05.02/KiCAD-PCM-2023.05.02.zip",
           "download_sha256": "2ed88531b41e8cae7328c08d1920bf068ff122ce1129e8855cedd7577ec540ae",
           "download_size": 93830,
-          "status": "testing",
-          "kicad_version": "8.0"
-        },
-        {
-          "version": "2023.05.01",
-          "download_url": "https://github.com/Bouni/kicad-jlcpcb-tools/releases/download/2023.05.01/KiCAD-PCM-2023.05.01.zip",
-          "download_sha256": "4bbf253bf49a82880b7d26755bd3db9056999a2eabe4d55d1f34c0cc4ea28578",
-          "download_size": 91887,
           "status": "testing",
           "kicad_version": "8.0"
         }
